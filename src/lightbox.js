@@ -14,19 +14,19 @@
     } else if (typeof exports === 'object') {
         module.exports = factory();
     } else {
-        root.baguetteBox = factory();
+        root.lightbox = factory();
     }
 }(this, function () {
     'use strict';
 
     // SVG shapes used on the buttons
     var leftArrow = '<svg width="44" height="60">' +
-            '<polyline points="30 10 10 30 30 50" stroke="rgba(255,255,255,0.5)" stroke-width="4"' +
-              'stroke-linecap="butt" fill="none" stroke-linejoin="round"/>' +
-            '</svg>',
+        '<polyline points="30 10 10 30 30 50" stroke="rgba(255,255,255,0.5)" stroke-width="4"' +
+        'stroke-linecap="butt" fill="none" stroke-linejoin="round"/>' +
+        '</svg>',
         rightArrow = '<svg width="44" height="60">' +
             '<polyline points="14 10 34 30 14 50" stroke="rgba(255,255,255,0.5)" stroke-width="4"' +
-              'stroke-linecap="butt" fill="none" stroke-linejoin="round"/>' +
+            'stroke-linecap="butt" fill="none" stroke-linejoin="round"/>' +
             '</svg>',
         closeX = '<svg width="30" height="30">' +
             '<g stroke="rgb(160,160,160)" stroke-width="4">' +
@@ -50,6 +50,8 @@
             onChange: null,
             overlayBackgroundColor: 'rgba(0,0,0,.8)'
         };
+    // Get real screen resolution
+    var width = window.innerWidth * window.devicePixelRatio;
     // Object containing information about features compatibility
     var supports = {};
     // DOM Elements references
@@ -64,6 +66,8 @@
     var touch = {};
     // If set to true ignore touch events because animation was already fired
     var touchFlag = false;
+    //transform offset value
+    var offset;
     // Regex pattern to match image files
     var regex = /.+\.(gif|jpe?g|png|webp)/i;
     // Object of all used galleries
@@ -72,25 +76,29 @@
     var imagesElements = [];
     // The last focused element before opening the overlay
     var documentLastFocus = null;
-    var overlayClickHandler = function(event) {
+    //style transform property name
+    var transform = getTransform();
+
+
+    var overlayClickHandler = function (event) {
         // Close the overlay when user clicks directly on the background
         if (event.target.id.indexOf('baguette-img') !== -1) {
             hideOverlay();
         }
     };
-    var previousButtonClickHandler = function(event) {
+    var previousButtonClickHandler = function (event) {
         event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true; // eslint-disable-line no-unused-expressions
         showPreviousImage();
     };
-    var nextButtonClickHandler = function(event) {
+    var nextButtonClickHandler = function (event) {
         event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true; // eslint-disable-line no-unused-expressions
         showNextImage();
     };
-    var closeButtonClickHandler = function(event) {
+    var closeButtonClickHandler = function (event) {
         event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true; // eslint-disable-line no-unused-expressions
         hideOverlay();
     };
-    var touchstartHandler = function(event) {
+    var touchstartHandler = function (event) {
         touch.count++;
         if (touch.count > 1) {
             touch.multitouch = true;
@@ -99,7 +107,41 @@
         touch.startX = event.changedTouches[0].pageX;
         touch.startY = event.changedTouches[0].pageY;
     };
-    var touchmoveHandler = function(event) {
+
+    var mouseUpHandler = function (e) {
+        touchFlag = false;
+        e.preventDefault(); //prevent default action
+        this.style.cursor = '-webkit-grab';
+        if(Math.abs(e.pageX - touch.startX) <= 40 ){
+            //if image drag is not finished yet
+            if(offset % 100 !== 0) {
+                show(currentIndex);
+            }
+            return;
+        }
+        let index = Math.round(offset / 100) * -1;
+        show(index);
+
+    }
+    var mouseDownHandler = function (e) {
+        e.preventDefault(); //prevent default action
+        touchFlag = true;
+        touch.startX = e.pageX;
+        this.style.cursor = '-webkit-grabbing';
+
+    }
+
+    var mouseMoveHandler = function (e) {
+        if (!touchFlag) {
+            return;
+        }
+        var move = e.movementX * 100 / width;
+        offset += move;
+
+        slider.style[transform] = `translate3d(${offset}%, 0, 0)`;
+    }
+
+    var touchmoveHandler = function (event) {
         // If action was already triggered or multitouch return
         if (touchFlag || touch.multitouch) {
             return;
@@ -113,23 +155,23 @@
         } else if (touchEvent.pageX - touch.startX < -40) {
             touchFlag = true;
             showNextImage();
-        // Move 100 pixels up to close the overlay
+            // Move 100 pixels up to close the overlay
         } else if (touch.startY - touchEvent.pageY > 100) {
             hideOverlay();
         }
     };
-    var touchendHandler = function() {
+    var touchendHandler = function () {
         touch.count--;
         if (touch.count <= 0) {
             touch.multitouch = false;
         }
         touchFlag = false;
     };
-    var contextmenuHandler = function() {
+    var contextmenuHandler = function () {
         touchendHandler();
     };
 
-    var trapFocusInsideOverlay = function(event) {
+    var trapFocusInsideOverlay = function (event) {
         if (overlay.style.display === 'block' && (overlay.contains && !overlay.contains(event.target))) {
             event.stopPropagation();
             initFocus();
@@ -140,7 +182,7 @@
     // http://stackoverflow.com/a/14827443/1077846
     /* eslint-disable */
     if (![].forEach) {
-        Array.prototype.forEach = function(callback, thisArg) {
+        Array.prototype.forEach = function (callback, thisArg) {
             for (var i = 0; i < this.length; i++) {
                 callback.call(thisArg, this[i], i, this);
             }
@@ -150,7 +192,7 @@
     // filter polyfill for IE8
     // https://gist.github.com/eliperelman/1031656
     if (![].filter) {
-        Array.prototype.filter = function(a, b, c, d, e) {
+        Array.prototype.filter = function (a, b, c, d, e) {
             c = this;
             d = [];
             for (e = 0; e < c.length; e++)
@@ -181,7 +223,7 @@
         };
         data[selector] = selectorData;
 
-        [].forEach.call(galleryNodeList, function(galleryElement) {
+        [].forEach.call(galleryNodeList, function (galleryElement) {
             if (userOptions && userOptions.filter) {
                 regex = userOptions.filter;
             }
@@ -195,7 +237,7 @@
             }
 
             // Filter 'a' elements from those not linking to images
-            tagsNodeList = [].filter.call(tagsNodeList, function(element) {
+            tagsNodeList = [].filter.call(tagsNodeList, function (element) {
                 if (element.className.indexOf(userOptions && userOptions.ignoreClass) === -1) {
                     return regex.test(element.href);
                 }
@@ -205,8 +247,8 @@
             }
 
             var gallery = [];
-            [].forEach.call(tagsNodeList, function(imageElement, imageIndex) {
-                var imageElementClickHandler = function(event) {
+            [].forEach.call(tagsNodeList, function (imageElement, imageIndex) {
+                var imageElementClickHandler = function (event) {
                     event.preventDefault ? event.preventDefault() : event.returnValue = false; // eslint-disable-line no-unused-expressions
                     prepareOverlay(gallery, userOptions);
                     showOverlay(imageIndex);
@@ -237,8 +279,8 @@
             return;
         }
         var galleries = data[selector].galleries;
-        [].forEach.call(galleries, function(gallery) {
-            [].forEach.call(gallery, function(imageItem) {
+        [].forEach.call(galleries, function (gallery) {
+            [].forEach.call(gallery, function (imageItem) {
                 unbind(imageItem.imageElement, 'click', imageItem.eventHandler);
             });
 
@@ -263,6 +305,7 @@
         // Create overlay element
         overlay = create('div');
         overlay.setAttribute('role', 'dialog');
+        overlay.style.cursor = '-webkit-grab';
         overlay.id = 'baguetteBox-overlay';
         document.getElementsByTagName('body')[0].appendChild(overlay);
         // Create gallery slider element
@@ -298,25 +341,28 @@
 
     function keyDownHandler(event) {
         switch (event.keyCode) {
-        case 37: // Left arrow
-            showPreviousImage();
-            break;
-        case 39: // Right arrow
-            showNextImage();
-            break;
-        case 27: // Esc
-            hideOverlay();
-            break;
+            case 37: // Left arrow
+                showPreviousImage();
+                break;
+            case 39: // Right arrow
+                showNextImage();
+                break;
+            case 27: // Esc
+                hideOverlay();
+                break;
         }
     }
 
     function bindEvents() {
-        var options = supports.passiveEvents ? { passive: true } : null;
+        var options = supports.passiveEvents ? {passive: true} : null;
         bind(overlay, 'click', overlayClickHandler);
         bind(previousButton, 'click', previousButtonClickHandler);
         bind(nextButton, 'click', nextButtonClickHandler);
         bind(closeButton, 'click', closeButtonClickHandler);
         bind(slider, 'contextmenu', contextmenuHandler);
+        bind(overlay, 'mouseup', mouseUpHandler);
+        bind(overlay, 'mousedown', mouseDownHandler);
+        bind(overlay, 'mousemove', mouseMoveHandler);
         bind(overlay, 'touchstart', touchstartHandler, options);
         bind(overlay, 'touchmove', touchmoveHandler, options);
         bind(overlay, 'touchend', touchendHandler);
@@ -324,7 +370,7 @@
     }
 
     function unbindEvents() {
-        var options = supports.passiveEvents ? { passive: true } : null;
+        var options = supports.passiveEvents ? {passive: true} : null;
         unbind(overlay, 'click', overlayClickHandler);
         unbind(previousButton, 'click', previousButtonClickHandler);
         unbind(nextButton, 'click', nextButtonClickHandler);
@@ -380,7 +426,7 @@
         }
         /* Apply new options */
         // Change transition for proper animation
-        slider.style.transition = slider.style.webkitTransition = (options.animation === 'fadeIn' ? 'opacity .4s ease' :
+        slider.style.transition = slider.style[transform] = (options.animation === 'fadeIn' ? 'opacity .4s ease' :
             options.animation === 'slideIn' ? '' : 'none');
         // Hide buttons if necessary
         if (options.buttons === 'auto' && ('ontouchstart' in window || currentGallery.length === 1)) {
@@ -412,7 +458,7 @@
             startX: null,
             startY: null
         };
-        loadImage(currentIndex, function() {
+        loadImage(currentIndex, function () {
             preloadNext(currentIndex);
             preloadPrev(currentIndex);
         });
@@ -423,7 +469,7 @@
             enterFullScreen();
         }
         // Fade in overlay
-        setTimeout(function() {
+        setTimeout(function () {
             overlay.className = 'visible';
             if (options.bodyClass && document.body.classList) {
                 document.body.classList.add(options.bodyClass);
@@ -480,7 +526,7 @@
         unbind(document, 'keydown', keyDownHandler);
         // Fade out and hide the overlay
         overlay.className = '';
-        setTimeout(function() {
+        setTimeout(function () {
             overlay.style.display = 'none';
             exitFullscreen();
             if (options.bodyClass && document.body.classList) {
@@ -538,7 +584,7 @@
 
         // Prepare gallery img element
         var image = create('img');
-        image.onload = function() {
+        image.onload = function () {
             // Remove loader element
             var spinner = document.querySelector('#baguette-img-' + index + ' .baguetteBox-spinner');
             figure.removeChild(spinner);
@@ -573,11 +619,10 @@
                 }
             }
             // Sort resolutions ascending
-            var keys = Object.keys(srcs).sort(function(a, b) {
+            var keys = Object.keys(srcs).sort(function (a, b) {
                 return parseInt(a, 10) < parseInt(b, 10) ? -1 : 1;
             });
-            // Get real screen resolution
-            var width = window.innerWidth * window.devicePixelRatio;
+
             // Find the first image bigger than or equal to the current width
             var i = 0;
             while (i < keys.length - 1 && keys[i] < width) {
@@ -614,17 +659,19 @@
             if (options.animation) {
                 bounceAnimation('left');
             }
+            show(currentIndex);
             return false;
         }
         if (index >= imagesElements.length) {
             if (options.animation) {
                 bounceAnimation('right');
             }
+            show(currentIndex);
             return false;
         }
 
         currentIndex = index;
-        loadImage(currentIndex, function() {
+        loadImage(currentIndex, function () {
             preloadNext(currentIndex);
             preloadPrev(currentIndex);
         });
@@ -643,25 +690,25 @@
      */
     function bounceAnimation(direction) {
         slider.className = 'bounce-from-' + direction;
-        setTimeout(function() {
+        setTimeout(function () {
             slider.className = '';
         }, 400);
     }
 
     function updateOffset() {
-        var offset = -currentIndex * 100 + '%';
+        offset = -currentIndex * 100;
         if (options.animation === 'fadeIn') {
             slider.style.opacity = 0;
-            setTimeout(function() {
+            setTimeout(function () {
                 supports.transforms ?
-                    slider.style.transform = slider.style.webkitTransform = 'translate3d(' + offset + ',0,0)'
-                    : slider.style.left = offset;
+                    slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)'
+                    : slider.style.left = offset + '%';
                 slider.style.opacity = 1;
             }, 400);
         } else {
             supports.transforms ?
-                slider.style.transform = slider.style.webkitTransform = 'translate3d(' + offset + ',0,0)'
-                : slider.style.left = offset;
+                slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)'
+                : slider.style.left = offset + '%';
         }
     }
 
@@ -683,12 +730,13 @@
         var passiveEvents = false;
         try {
             var opts = Object.defineProperty({}, 'passive', {
-                get: function() {
+                get: function () {
                     passiveEvents = true;
                 }
             });
             window.addEventListener('test', null, opts);
-        } catch (e) { /* Silence the error and continue */ }
+        } catch (e) { /* Silence the error and continue */
+        }
 
         return passiveEvents;
     }
@@ -697,7 +745,7 @@
         if (index - currentIndex >= options.preload) {
             return;
         }
-        loadImage(index + 1, function() {
+        loadImage(index + 1, function () {
             preloadNext(index + 1);
         });
     }
@@ -706,7 +754,7 @@
         if (currentIndex - index >= options.preload) {
             return;
         }
-        loadImage(index - 1, function() {
+        loadImage(index - 1, function () {
             preloadPrev(index - 1);
         });
     }
@@ -716,7 +764,7 @@
             element.addEventListener(event, callback, options);
         } else {
             // IE8 fallback
-            element.attachEvent('on' + event, function(event) {
+            element.attachEvent('on' + event, function (event) {
                 // `event` and `event.target` are not provided in IE8
                 event = event || window.event;
                 event.target = event.target || event.srcElement;
@@ -750,6 +798,15 @@
         data = {};
         currentGallery = [];
         currentIndex = 0;
+    }
+
+    //webkit transform or simple transform
+    function getTransform() {
+        const style = document.documentElement.style;
+        if (typeof style.transform === 'string') {
+            return 'transform';
+        }
+        return 'WebkitTransform';
     }
 
     return {

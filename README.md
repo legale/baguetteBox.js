@@ -1,20 +1,11 @@
-<h1 align="center">baguetteBox.js</h1>
+<h1 align="center">lightbox.js</h1>
 
-[![GitHub Release](https://img.shields.io/github/release/feimosi/baguetteBox.js.svg)](https://github.com/feimosi/baguetteBox.js/releases)
-[![MIT License](https://img.shields.io/npm/l/baguettebox.js.svg)](https://github.com/feimosi/baguetteBox.js/blob/dev/LICENSE)
-[![dependency Status](https://img.shields.io/badge/dependencies-none-blue.svg)](https://david-dm.org/feimosi/baguetteBox.js)
-[![devDependency Status](https://img.shields.io/david/dev/feimosi/baguetteBox.js.svg)](https://david-dm.org/feimosi/baguetteBox.js?type=dev)
-[![npm](https://img.shields.io/npm/dm/baguettebox.js.svg)](https://www.npmjs.com/package/baguettebox.js)
-[![Build Status](https://travis-ci.org/feimosi/baguetteBox.js.svg?branch=master)](https://travis-ci.org/feimosi/baguetteBox.js)
+![issues](https://img.shields.io/github/issues/legale/lightbox.svg)
+![dependency Status](https://img.shields.io/badge/dependencies-none-blue.svg)
+[![GitHub license](https://img.shields.io/github/license/legale/lightbox.svg)](https://github.com/legale/lightbox/blob/dev/LICENSE)
 
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20baguetteBox.js%20-%20simple%20and%20easy%20to%20use%20lightbox%20script%20written%20in%20pure%20JavaScript%0Ahttps%3A%2F%2Fgithub.com%2Ffeimosi%2FbaguetteBox.js)
-[![Twitter Follow](https://img.shields.io/twitter/follow/feimosi.svg?style=social&label=Follow%20the%20author)](https://twitter.com/feimosi)
+Simple and easy to use lightbox script written in pure JavaScript. Forked from feimosi/baguetteBox.js
 
-Simple and easy to use lightbox script written in pure JavaScript.
-
-[Demo page](https://feimosi.github.io/baguetteBox.js/)
-
-![Demo Page screenshot](http://i.imgur.com/GMmnud0.jpg)
 
 ## Table of contents
 
@@ -43,82 +34,22 @@ Simple and easy to use lightbox script written in pure JavaScript.
 * SVG buttons, no extra files to download
 * Around 3.2KB gzipped
 * With Accessibility in mind
+* Touch and mouse swipe compotible
 
 ## Installation
-
-You can use one of the following methods:
-
-### npm
-
-```sh
-npm install baguettebox.js --save
-```
-
-### Yarn
-```sh
-yarn add baguettebox.js
-```
-
-### Bower
-
-```sh
-bower install baguettebox.js --save
-```
-
-### CDN
-1. Use one of the following CDN providers:
-  - https://cdnjs.com/libraries/baguettebox.js
-  - http://jsdelivr.com/projects/baguettebox.js
-
-3. Copy URLs of the latest version (both `.js` and `.css` files)
-
-2. Paste the URLs in your HTML file:
+Just load js and css.
 
   ```html
-<link rel="stylesheet" href="<CSS URL>">
-<script src="<JS URL>" async></script>
+<link rel="stylesheet" href="css/lightbox.css">
+<script src="lightbox.js" async></script>
   ```
-
-### Manually
-
-1. Download `baguetteBox.min.css` and `baguetteBox.min.js` files from the `dist` folder.
-2. Include them somewhere in your document:
-
-  ```html
-<link rel="stylesheet" href="css/baguetteBox.min.css">
-<script src="js/baguetteBox.min.js" async></script>
-  ```
-
-## Importing
-
-### Traditional approach
-
-If you don't use JavaScript modules and include the file with a `<script>` tag, you don't have to import anything explicitly. `baguetteBox` will be available in the global scope.
-
-### CommonJS
-
-```js
-const baguetteBox = require('baguettebox.js');
-```
-
-### ES2015 modules
-
-```js
-import baguetteBox from 'baguettebox.js';
-```
-
-### Sass
-
-```scss
-@import 'baguettebox.js/dist/baguetteBox.min.css';
-```
 
 ## Usage
 
 Initialize the script by running:
 
 ```js
-baguetteBox.run('.gallery');
+lightbox.run('.gallery');
 ```
 
 where the first argument is a selector to a gallery (or galleries) containing `a` tags. The HTML code may look like this:
@@ -142,7 +73,7 @@ To use captions put a `title` or `data-caption` attribute on the `a` tag.
 You can pass an object with custom options as the second parameter.
 
 ```js
-baguetteBox.run('.gallery', {
+lightbox.run('.gallery', {
     // Custom options
 });
 ```
@@ -171,7 +102,7 @@ The following options are available:
 
 ### `run(selector, userOptions)`
 
-Initialize baguetteBox.js
+Initialize lightbox.js
 
 - @param `selector` {string} - valid CSS selector used by `querySelectorAll`
 - @param `userOptions` {object} - custom options (see [#Customization](#customization))
@@ -188,8 +119,8 @@ Show (if hidden) and move the gallery to a specific index
 Usage:
 
 ```js
-const gallery = baguetteBox.run('.gallery');
-baguetteBox.show(index, gallery[0]);
+const gallery = lightbox.run('.gallery');
+lightbox.show(index, gallery[0]);
 ```
 
 ### `showNext`
@@ -229,10 +160,11 @@ Here's an example of what the HTML code can look like:
 </a>
 ```
 
-If you have 1366x768 resolution baguetteBox.js will choose `"img/medium/2-1.jpg"`. If, however, it's 1440x900 it'll choose `"img/big/2-1.jpg"`. Keep the `href` attribute as a fallback (link to a bigger image e.g. of HD size) for older browsers.
+If you have 1366x768 resolution lightbox.js will choose `"img/medium/2-1.jpg"`. If, however, it's 1440x900 it'll choose `"img/big/2-1.jpg"`. Keep the `href` attribute as a fallback (link to a bigger image e.g. of HD size) for older browsers.
 
 ## Compatibility
 
+Should work on, but not for sure:
 Desktop:
 * IE 8+
 * Chrome
@@ -248,14 +180,7 @@ Mobile:
 
 Feel free to report any issues! If you wish to contribute by fixing a bug or implementing a new feature, please first read the [CONTRIBUTING](./CONTRIBUTING.md) guide.
 
-## Credits
-
-Creation of `baguetteBox.js` was inspired by a great jQuery plugin [touchTouch](https://github.com/martinaglv/touchTouch).
-
-Huge thanks for providing a testing platform go to [![BrowserStack](https://i.imgur.com/rlVVZwG.png)](http://browserstack.com/)
 
 ## License
-
-Copyright (c) 2018 [feimosi](https://github.com/feimosi/)
 
 This content is released under the [MIT License](https://opensource.org/licenses/MIT).
