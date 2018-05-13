@@ -1,10 +1,10 @@
 /*!
- * baguetteBox.js
+ * lightbox.js
  * @author  feimosi
  * @version 1.10.0
- * @url https://github.com/feimosi/baguetteBox.js
+ * @url https://github.com/feimosi/lightbox.js
  */
-#baguetteBox-overlay {
+#lightbox-overlay {
   display: none;
   opacity: 0;
   position: fixed;
@@ -18,19 +18,19 @@
   background-color: rgba(0, 0, 0, 0.8);
   -webkit-transition: opacity .5s ease;
   transition: opacity .5s ease; }
-  #baguetteBox-overlay.visible {
+  #lightbox-overlay.visible {
     opacity: 1; }
-  #baguetteBox-overlay .full-image {
+  #lightbox-overlay .full-image {
     display: inline-block;
     position: relative;
     width: 100%;
     height: 100%;
     text-align: center; }
-    #baguetteBox-overlay .full-image figure {
+    #lightbox-overlay .full-image figure {
       display: inline;
       margin: 0;
       height: 100%; }
-    #baguetteBox-overlay .full-image img {
+    #lightbox-overlay .full-image img {
       display: inline-block;
       width: auto;
       height: auto;
@@ -40,7 +40,7 @@
       -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
          -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
               box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); }
-    #baguetteBox-overlay .full-image figcaption {
+    #lightbox-overlay .full-image figcaption {
       display: block;
       position: absolute;
       bottom: 0;
@@ -52,14 +52,14 @@
       background-color: #000;
       background-color: rgba(0, 0, 0, 0.6);
       font-family: sans-serif; }
-    #baguetteBox-overlay .full-image:before {
+    #lightbox-overlay .full-image:before {
       content: "";
       display: inline-block;
       height: 50%;
       width: 1px;
       margin-right: -1px; }
 
-#baguetteBox-slider {
+#lightbox-slider {
   position: absolute;
   left: 0;
   top: 0;
@@ -70,10 +70,10 @@
   transition: left .4s ease, -webkit-transform .4s ease;
   transition: left .4s ease, transform .4s ease;
   transition: left .4s ease, transform .4s ease, -webkit-transform .4s ease, -moz-transform .4s ease; }
-  #baguetteBox-slider.bounce-from-right {
+  #lightbox-slider.bounce-from-right {
     -webkit-animation: bounceFromRight .4s ease-out;
             animation: bounceFromRight .4s ease-out; }
-  #baguetteBox-slider.bounce-from-left {
+  #lightbox-slider.bounce-from-left {
     -webkit-animation: bounceFromLeft .4s ease-out;
             animation: bounceFromLeft .4s ease-out; }
 
@@ -109,13 +109,13 @@
   100% {
     margin-left: 0; } }
 
-.baguetteBox-button#next-button, .baguetteBox-button#previous-button {
+.lightbox-button#next-button, .lightbox-button#previous-button {
   top: 50%;
   top: calc(50% - 30px);
   width: 44px;
   height: 60px; }
 
-.baguetteBox-button {
+.lightbox-button {
   position: absolute;
   cursor: pointer;
   outline: none;
@@ -130,19 +130,19 @@
   font: 1.6em sans-serif;
   -webkit-transition: background-color .4s ease;
   transition: background-color .4s ease; }
-  .baguetteBox-button:focus, .baguetteBox-button:hover {
+  .lightbox-button:focus, .lightbox-button:hover {
     background-color: rgba(50, 50, 50, 0.9); }
-  .baguetteBox-button#next-button {
+  .lightbox-button#next-button {
     right: 2%; }
-  .baguetteBox-button#previous-button {
+  .lightbox-button#previous-button {
     left: 2%; }
-  .baguetteBox-button#close-button {
+  .lightbox-button#close-button {
     top: 20px;
     right: 2%;
     right: calc(2% + 6px);
     width: 30px;
     height: 30px; }
-  .baguetteBox-button svg {
+  .lightbox-button svg {
     position: absolute;
     left: 0;
     top: 0; }
@@ -151,7 +151,7 @@
     Preloader
     Borrowed from http://tobiasahlin.com/spinkit/
 */
-.baguetteBox-spinner {
+.lightbox-spinner {
   width: 40px;
   height: 40px;
   display: inline-block;
@@ -161,8 +161,8 @@
   margin-top: -20px;
   margin-left: -20px; }
 
-.baguetteBox-double-bounce1,
-.baguetteBox-double-bounce2 {
+.lightbox-double-bounce1,
+.lightbox-double-bounce2 {
   width: 100%;
   height: 100%;
   -moz-border-radius: 50%;
@@ -175,7 +175,7 @@
   -webkit-animation: bounce 2s infinite ease-in-out;
           animation: bounce 2s infinite ease-in-out; }
 
-.baguetteBox-double-bounce2 {
+.lightbox-double-bounce2 {
   -webkit-animation-delay: -1s;
           animation-delay: -1s; }
 

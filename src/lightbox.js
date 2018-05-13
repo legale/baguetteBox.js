@@ -1,8 +1,8 @@
 /*!
- * baguetteBox.js
+ * lightbox.js
  * @author  feimosi
  * @version 1.10.0
- * @url https://github.com/feimosi/baguetteBox.js
+ * @url https://github.com/feimosi/lightbox.js
  */
 
 /* global define, module */
@@ -40,7 +40,7 @@
             buttons: 'auto',
             fullScreen: false,
             noScrollbars: false,
-            bodyClass: 'baguetteBox-open',
+            bodyClass: 'lightbox-open',
             titleTag: false,
             async: false,
             preload: 2,
@@ -48,7 +48,8 @@
             afterShow: null,
             afterHide: null,
             onChange: null,
-            overlayBackgroundColor: 'rgba(0,0,0,.8)'
+            overlayBackgroundColor: 'rgba(0,0,0,.8)',
+            sens: 100
         };
     // Get real screen resolution
     var width = window.innerWidth * window.devicePixelRatio;
@@ -77,15 +78,17 @@
     // The last focused element before opening the overlay
     var documentLastFocus = null;
     //style transform property name
-    var transform = getTransform();
+    var transform;
 
 
-    var overlayClickHandler = function (event) {
-        // Close the overlay when user clicks directly on the background
-        if (event.target.id.indexOf('baguette-img') !== -1) {
-            hideOverlay();
-        }
-    };
+    //lightbox init sequence
+    transform = getTransform();
+    // Fill supports object
+    supports.transforms = testTransformsSupport();
+    supports.svg = testSvgSupport();
+    supports.passiveEvents = testPassiveEventsSupport();
+
+
     var previousButtonClickHandler = function (event) {
         event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true; // eslint-disable-line no-unused-expressions
         showPreviousImage();
@@ -99,73 +102,87 @@
         hideOverlay();
     };
     var touchstartHandler = function (event) {
+        if (e.target.id.indexOf('lightbox-img') === 0) {
+            return hideOverlay();
+        }
         touch.count++;
         if (touch.count > 1) {
             touch.multitouch = true;
         }
         // Save x and y axis position
-        touch.startX = event.changedTouches[0].pageX;
-        touch.startY = event.changedTouches[0].pageY;
+        touch.startX = touch.prevX = event.changedTouches[0].pageX;
+        touch.startY = touch.prevY = event.changedTouches[0].pageY;
     };
-
-    var mouseUpHandler = function (e) {
-        touchFlag = false;
-        e.preventDefault(); //prevent default action
-        this.style.cursor = '-webkit-grab';
-        if(Math.abs(e.pageX - touch.startX) <= 40 ){
-            //if image drag is not finished yet
-            if(offset % 100 !== 0) {
-                show(currentIndex);
-            }
-            return;
-        }
-        let index = Math.round(offset / 100) * -1;
-        show(index);
-
-    }
     var mouseDownHandler = function (e) {
         e.preventDefault(); //prevent default action
+        if (e.target.id.indexOf('lightbox-img') === 0) {
+            return hideOverlay();
+        }
         touchFlag = true;
         touch.startX = e.pageX;
         this.style.cursor = '-webkit-grabbing';
 
     }
 
-    var mouseMoveHandler = function (e) {
-        if (!touchFlag) {
+    var mouseUpHandler = function (e) {
+        touchFlag = false;
+        this.style.cursor = '-webkit-grab';
+        var move = e.pageX - touch.startX;
+        if (Math.abs(move) <= 40) {
+            //if image drag is not finished yet
+            if (offset % 100 !== 0) {
+                show(currentIndex);
+            }
             return;
         }
-        var move = e.movementX * 100 / width;
-        offset += move;
+        show(move > 0 ? currentIndex - 1 : currentIndex + 1);
 
-        slider.style[transform] = `translate3d(${offset}%, 0, 0)`;
     }
 
-    var touchmoveHandler = function (event) {
-        // If action was already triggered or multitouch return
-        if (touchFlag || touch.multitouch) {
-            return;
+    var mousetouchmoveHandler = function (event) {
+        var e;
+        switch(event.type) {
+            case 'touchmove': //if touch event is in action - stop
+                if (touchFlag || touch.multitouch) {
+                    return;
+                }
+                e = event.touches[0] || event.changedTouches[0];
+                break;
+            case 'mousemove': //if mousedown event is not fired - stop
+                if (!touchFlag) {
+                    return;
+                }
+                e = event;
         }
-        event.preventDefault ? event.preventDefault() : event.returnValue = false; // eslint-disable-line no-unused-expressions
-        var touchEvent = event.touches[0] || event.changedTouches[0];
-        // Move at least 40 pixels to trigger the action
-        if (touchEvent.pageX - touch.startX > 40) {
-            touchFlag = true;
-            showPreviousImage();
-        } else if (touchEvent.pageX - touch.startX < -40) {
-            touchFlag = true;
-            showNextImage();
-            // Move 100 pixels up to close the overlay
-        } else if (touch.startY - touchEvent.pageY > 100) {
-            hideOverlay();
+
+
+        var overlay_width = overlay.getBoundingClientRect().width;
+        if(options.animation === 'slideIn') {
+            var move = (e.pageX - touch.prevX) * options.sens / overlay_width;
+            offset += move;
+            slider.style[transform] = 'translate3d(' + offset + '%, 0, 0)';
         }
+
+        touch.prevX = e.pageX;
+        touch.prevY = e.pageY;
     };
-    var touchendHandler = function () {
+    var touchendHandler = function (event) {
         touch.count--;
         if (touch.count <= 0) {
             touch.multitouch = false;
         }
         touchFlag = false;
+        var e = event.touches[0] || event.changedTouches[0];
+        this.style.cursor = '-webkit-grab';
+        var move = e.pageX - touch.startX;
+        if (Math.abs(move) <= 40) {
+            //if image drag is not finished yet
+            if (offset % 100 !== 0) {
+                show(currentIndex);
+            }
+            return;
+        }
+        show(move > 0 ? currentIndex - 1 : currentIndex + 1);
     };
     var contextmenuHandler = function () {
         touchendHandler();
@@ -204,11 +221,6 @@
 
     // Script entry point
     function run(selector, userOptions) {
-        // Fill supports object
-        supports.transforms = testTransformsSupport();
-        supports.svg = testSvgSupport();
-        supports.passiveEvents = testPassiveEventsSupport();
-
         buildOverlay();
         removeFromCache(selector);
         return bindImageClickListeners(selector, userOptions);
@@ -293,10 +305,10 @@
     }
 
     function buildOverlay() {
-        overlay = getByID('baguetteBox-overlay');
+        overlay = getByID('lightbox-overlay');
         // Check if the overlay already exists
         if (overlay) {
-            slider = getByID('baguetteBox-slider');
+            slider = getByID('lightbox-slider');
             previousButton = getByID('previous-button');
             nextButton = getByID('next-button');
             closeButton = getByID('close-button');
@@ -306,11 +318,11 @@
         overlay = create('div');
         overlay.setAttribute('role', 'dialog');
         overlay.style.cursor = '-webkit-grab';
-        overlay.id = 'baguetteBox-overlay';
+        overlay.id = 'lightbox-overlay';
         document.getElementsByTagName('body')[0].appendChild(overlay);
         // Create gallery slider element
         slider = create('div');
-        slider.id = 'baguetteBox-slider';
+        slider.id = 'lightbox-slider';
         overlay.appendChild(slider);
         // Create all necessary buttons
         previousButton = create('button');
@@ -334,7 +346,7 @@
         closeButton.innerHTML = supports.svg ? closeX : '&times;';
         overlay.appendChild(closeButton);
 
-        previousButton.className = nextButton.className = closeButton.className = 'baguetteBox-button';
+        previousButton.className = nextButton.className = closeButton.className = 'lightbox-button';
 
         bindEvents();
     }
@@ -355,23 +367,21 @@
 
     function bindEvents() {
         var options = supports.passiveEvents ? {passive: true} : null;
-        bind(overlay, 'click', overlayClickHandler);
         bind(previousButton, 'click', previousButtonClickHandler);
         bind(nextButton, 'click', nextButtonClickHandler);
         bind(closeButton, 'click', closeButtonClickHandler);
         bind(slider, 'contextmenu', contextmenuHandler);
         bind(overlay, 'mouseup', mouseUpHandler);
         bind(overlay, 'mousedown', mouseDownHandler);
-        bind(overlay, 'mousemove', mouseMoveHandler);
+        bind(overlay, 'mousemove', mousetouchmoveHandler);
         bind(overlay, 'touchstart', touchstartHandler, options);
-        bind(overlay, 'touchmove', touchmoveHandler, options);
+        bind(overlay, 'touchmove', mousetouchmoveHandler, options);
         bind(overlay, 'touchend', touchendHandler);
         bind(document, 'focus', trapFocusInsideOverlay, true);
     }
 
     function unbindEvents() {
         var options = supports.passiveEvents ? {passive: true} : null;
-        unbind(overlay, 'click', overlayClickHandler);
         unbind(previousButton, 'click', previousButtonClickHandler);
         unbind(nextButton, 'click', nextButtonClickHandler);
         unbind(closeButton, 'click', closeButtonClickHandler);
@@ -402,11 +412,11 @@
         for (var i = 0, fullImage; i < gallery.length; i++) {
             fullImage = create('div');
             fullImage.className = 'full-image';
-            fullImage.id = 'baguette-img-' + i;
+            fullImage.id = 'lightbox-img-' + i;
             imagesElements.push(fullImage);
 
-            imagesFiguresIds.push('baguetteBox-figure-' + i);
-            imagesCaptionsIds.push('baguetteBox-figcaption-' + i);
+            imagesFiguresIds.push('lightbox-figure-' + i);
+            imagesCaptionsIds.push('lightbox-figcaption-' + i);
             slider.appendChild(imagesElements[i]);
         }
         overlay.setAttribute('aria-labelledby', imagesFiguresIds.join(' '));
@@ -426,8 +436,10 @@
         }
         /* Apply new options */
         // Change transition for proper animation
-        slider.style.transition = slider.style[transform] = (options.animation === 'fadeIn' ? 'opacity .4s ease' :
-            options.animation === 'slideIn' ? '' : 'none');
+        slider.style.transition = slider.style[transform] = (options.animation === 'fadeIn' ?
+            'opacity .4s ease' :
+            options.animation === 'slideIn' ?
+                '' : 'none');
         // Hide buttons if necessary
         if (options.buttons === 'auto' && ('ontouchstart' in window || currentGallery.length === 1)) {
             options.buttons = false;
@@ -568,15 +580,15 @@
 
         // Prepare figure element
         var figure = create('figure');
-        figure.id = 'baguetteBox-figure-' + index;
-        figure.innerHTML = '<div class="baguetteBox-spinner">' +
-            '<div class="baguetteBox-double-bounce1"></div>' +
-            '<div class="baguetteBox-double-bounce2"></div>' +
+        figure.id = 'lightbox-figure-' + index;
+        figure.innerHTML = '<div class="lightbox-spinner">' +
+            '<div class="lightbox-double-bounce1"></div>' +
+            '<div class="lightbox-double-bounce2"></div>' +
             '</div>';
         // Insert caption if available
         if (options.captions && imageCaption) {
             var figcaption = create('figcaption');
-            figcaption.id = 'baguetteBox-figcaption-' + index;
+            figcaption.id = 'lightbox-figcaption-' + index;
             figcaption.innerHTML = imageCaption;
             figure.appendChild(figcaption);
         }
@@ -586,7 +598,7 @@
         var image = create('img');
         image.onload = function () {
             // Remove loader element
-            var spinner = document.querySelector('#baguette-img-' + index + ' .baguetteBox-spinner');
+            var spinner = document.querySelector('#lightbox-img-' + index + ' .lightbox-spinner');
             figure.removeChild(spinner);
             if (!options.async && callback) {
                 callback();
@@ -701,21 +713,18 @@
             slider.style.opacity = 0;
             setTimeout(function () {
                 supports.transforms ?
-                    slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)'
-                    : slider.style.left = offset + '%';
+                    slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)' : slider.style.left = offset + '%';
                 slider.style.opacity = 1;
             }, 400);
         } else {
             supports.transforms ?
-                slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)'
-                : slider.style.left = offset + '%';
+                slider.style.transform = slider.style[transform] = 'translate3d(' + offset + '%,0,0)' : slider.style.left = offset + '%';
         }
     }
 
     // CSS 3D Transforms test
     function testTransformsSupport() {
-        var div = create('div');
-        return typeof div.style.perspective !== 'undefined' || typeof div.style.webkitPerspective !== 'undefined';
+        return document.documentElement.style.perspective !== undefined;
     }
 
     // Inline SVG test
@@ -794,20 +803,32 @@
         unbindEvents();
         clearCachedData();
         unbind(document, 'keydown', keyDownHandler);
-        document.getElementsByTagName('body')[0].removeChild(document.getElementById('baguetteBox-overlay'));
+        document.getElementsByTagName('body')[0].removeChild(document.getElementById('lightbox-overlay'));
         data = {};
         currentGallery = [];
         currentIndex = 0;
     }
 
-    //webkit transform or simple transform
-    function getTransform() {
-        const style = document.documentElement.style;
-        if (typeof style.transform === 'string') {
-            return 'transform';
+    function getVendorPre() {
+        var p = null, s = window.document.documentElement.style;
+        if (s['-webkit-border-image'] !== undefined) {
+            p = 'webkit';
+        } else if (s['-moz-border-image'] !== undefined) {
+            p = 'moz';
+        } else if (s['-ms-border-image'] !== undefined) {
+            p = 'ms';
+        } else if (s['OBorderImage'] !== undefined) {
+            p = 'o';
         }
-        return 'WebkitTransform';
+        return p;
     }
+
+    //get transform css property name
+    function getTransform() {
+        var pre = getVendorPre();
+        return pre ? '-' + pre + '-' + 'transform' : 'transform';
+    }
+
 
     return {
         run: run,
