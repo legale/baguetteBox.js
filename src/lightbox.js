@@ -102,7 +102,7 @@
         hideOverlay();
     };
     var touchstartHandler = function (event) {
-        if (e.target.id.indexOf('lightbox-img') === 0) {
+        if (event.target.id.indexOf('lightbox-img') === 0) {
             return hideOverlay();
         }
         touch.count++;
@@ -160,6 +160,7 @@
         if(options.animation === 'slideIn') {
             var move = (e.pageX - touch.prevX) * options.sens / overlay_width;
             offset += move;
+            console.log(move + ' ' + offset);
             slider.style[transform] = 'translate3d(' + offset + '%, 0, 0)';
         }
 
