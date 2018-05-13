@@ -1,9 +1,7 @@
 <h1 align="center">lightbox.js</h1>
 
 [![issues](https://img.shields.io/github/issues/legale/lightbox.svg)](https://img.shields.io/github/issues/legale/lightbox.svg)
-
 [![dependency Status](https://img.shields.io/badge/dependencies-none-blue.svg)](https://img.shields.io/badge/dependencies-none-blue.svg)
-
 [![GitHub license](https://img.shields.io/github/license/legale/lightbox.svg)](https://github.com/legale/lightbox)
 
 Simple and easy to use lightbox script written in pure JavaScript. Forked from feimosi/baguetteBox.js
