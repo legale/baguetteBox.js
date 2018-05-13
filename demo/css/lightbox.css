@@ -129,7 +129,7 @@
   font: 1.6em sans-serif;
   -webkit-transition: background-color .4s ease;
   transition: background-color .4s ease; }
-  .lightbox-button:focus, .lightbox-button:hover {
+  .lightbox-button:hover {
     background-color: #555;
   }
   .lightbox-button#next-button {
