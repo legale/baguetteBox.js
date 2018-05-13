@@ -126,12 +126,12 @@
        border-radius: 15%;
   background-color: #323232;
   background-color: rgba(50, 50, 50, 0.5);
-  color: #ddd;
   font: 1.6em sans-serif;
   -webkit-transition: background-color .4s ease;
   transition: background-color .4s ease; }
   .lightbox-button:focus, .lightbox-button:hover {
-    background-color: rgba(50, 50, 50, 0.9); }
+    background-color: #555;
+  }
   .lightbox-button#next-button {
     right: 2%; }
   .lightbox-button#previous-button {
